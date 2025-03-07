@@ -1,5 +1,6 @@
 from acceleration import Acceleration
 from machine import Pin
+import uasyncio as asyncio
 import time
 import neopixel
 
@@ -18,15 +19,36 @@ purple = (55,0,200)
 teal = (0, 255, 50)
 off = (0,0,0)
 
-while True:
-    accel = t.read_accel()
-    print(accel)
+# lights: helper function to change the neopixel color and speed
+async def lights(color, delay):
+    while True:
+        if t.lightVal>0:
+            for i in range(0, numPixel):
+                pixel[i] = color
+                pixel.write()
+            await asyncio.sleep(delay)        
+            for i in range(0, numPixel):
+                pixel[i] = off
+                pixel.write()
+            await asyncio.sleep(delay)
+        await asyncio.sleep(0.01)
+
+async def main():
+
+    while True:            
+        accel = t.read_accel()
+        print(accel)
+        await asyncio.sleep(0.25)
     
-    if accel > last * 1.5:
-        print("--- Triggering positive acceleration case ---")
-        for i in range(0,numPixel):
-            pixel[i] = purple
-            pixel.write()
-        
-    
-    time.sleep(0.25)
+# --- Running main ---
+loop = asyncio.get_event_loop()
+loop.create_task(main())
+loop.create_task(t.read_event())
+loop.create_task(lights(purple, 0.1))
+loop.create_task
+
+try:
+    loop.run_forever()
+
+except KeyboardInterrupt:
+    print("Exiting...")
